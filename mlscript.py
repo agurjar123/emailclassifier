@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import json
 
-rootdir = "C:/Users/arjun/Desktop/Code/EmailClassifier/enron_mail_20150507/maildir"
+rootdir = "C:/Users/arjun/Desktop/Folders/Internship/emailclassifier-main/enron_mail_20150507/maildir"
 
 def analyze(inputfile, tolist, fromlist, body, id, subject):
     with open(inputfile, "r") as f:
@@ -28,21 +28,12 @@ fromlist = []
 body = []
 id= []
 subject = []
-for directory, subdirectory, filenames in os.walk(rootdir):
-    for filename in filenames:
-        analyze(os.path.join(directory, filename), tolist, fromlist, body, id, subject)
-        directorylist.append(directory)
 
-emailsdf = pd.DataFrame()
-emailsdf['ID'] = id
-emailsdf['To'] = tolist
-emailsdf['From'] = fromlist
-emailsdf['Body'] = body
-emailsdf['Subject'] = subject
-emailsdf['Directory'] = directorylist
+emailsdf = pd.read_pickle('emailsdf.pkl')
 pd.set_option('display.max.columns', None)
-emailsdf.to_pickle('emailsdf.pkl')
 
+for i in range(5):
+    print(emailsdf['Directory'][i])
 
 emailsdf['Thread Bool'] = " "
 
@@ -53,12 +44,39 @@ identifier1 = '''
 
 '''
 identifier2 = '-----Original Message-----'
-for i in range(emailsdf.shape[0]):
-    if emailsdf['Directory'][i].split('\\')[1] == 'sent':
-         if identifier1 in str(emailsdf['Body'][i]) or identifier2 in str(emailsdf['Body'][i]):
-            a+= 1
-            emailsdf['Thread Bool'][i] = 'Replied'
+identifier3 = 'kate.symes@enron.com'
+bool = False
+symesid = '''
 
-for i in range(emailsdf.shape[0]):
-    print(emailsdf['Thread Bool'][i])
-print(a)
+
+
+'''
+split = []
+repltext = ''
+triggersymes = 'cc:'
+triggersymes2 = '''
+'''
+triggersymes3 = 'Subject:'
+hi = []
+def emailsplit(body, directory, fromdef, todef, poi, table):
+    if directory.split('\\')[2] == 'sent':
+        print('yes')
+        if identifier1 in str(body) or identifier2 in str(body):
+            bool = True
+            print('yes')
+            if identifier3 in fromdef or identifier3 in todef or identifier3 in body:
+                split = body.split(symesid)
+                print('yes')
+                for i in split:
+                    if identifier3 in split[i-1]:
+                        repltext = split[i]
+                        emailsdf['Reply'][i] = repltext.split('Subject:')
+                        return hi
+emailsdf['Reply'] =''
+for i in range(emailsdf.shape[1]):
+    emailsdf['Reply'][i] = emailsplit(emailsdf['Body'][i], emailsdf['Directory'][i], emailsdf['From'][i], emailsdf['To'][i], 'kate.symes@enron.com', emailsdf)
+
+for i in range(emailsdf.shape[1]):
+    if emailsdf['Directory'][i].split('\\') == 'symes-k':
+        print(emailsdf['Reply'][i])
+
