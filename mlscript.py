@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import json
 
-rootdir = "C:/Users/arjun/Desktop/Folders/Internship/emailclassifier-main/enron_mail_20150507/maildir"
+rootdir = "C:/Users/arjun/Desktop/Code/EmailClassifier/enron_mail_20150507/maildir"
 
 def analyze(inputfile, tolist, fromlist, body, id, subject):
     with open(inputfile, "r") as f:
@@ -39,17 +39,11 @@ emailsdf['Thread Bool'] = " "
 
 a = 0
 identifier1 = '''
-
-
-
 '''
 identifier2 = '-----Original Message-----'
 identifier3 = 'kate.symes@enron.com'
 bool = False
 symesid = '''
-
-
-
 '''
 split = []
 repltext = ''
@@ -74,9 +68,18 @@ def emailsplit(body, directory, fromdef, todef, poi, table):
                         return hi
 emailsdf['Reply'] =''
 for i in range(emailsdf.shape[1]):
-    emailsdf['Reply'][i] = emailsplit(emailsdf['Body'][i], emailsdf['Directory'][i], emailsdf['From'][i], emailsdf['To'][i], 'kate.symes@enron.com', emailsdf)
-
+    if emailsdf['Directory'][i].split('\\')[2] == 'sent':
+        print('yes')
+        if identifier1 in str(body) or identifier2 in str(body):
+            bool = True
+            print('yes')
+            if identifier3 in emailsdf['From'][i] or identifier3 in emailsdf['To'][i] or identifier3 in emailsdf['Body'][i]:
+                split = emailsdf['Body'][i].split(symesid)
+                print('yes')
+                for f in split:
+                    if identifier3 in split[split.index(f)-1]:
+                        repltext = split[split.index(f)]
+                        emailsdf['Reply'][i] = repltext.split('Subject:')
 for i in range(emailsdf.shape[1]):
     if emailsdf['Directory'][i].split('\\') == 'symes-k':
         print(emailsdf['Reply'][i])
-
