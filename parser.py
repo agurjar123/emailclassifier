@@ -1,11 +1,20 @@
+"""
+Email Parser Module
+
+This module provides functionality to parse email files and directories,
+extracting metadata and content, and organizing them by users and threads.
+"""
+
 import re
 from os import path, listdir
 import sys
 import json
+import logging
 
-#
-# Precompiled patterns for performance
-#
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+# Precompiled regex patterns for performance optimization
 time_pattern = re.compile(
     "Date: (?P<data>[A-Z][a-z]+\, \d{1,2} [A-Z][a-z]+ \d{4} \d{2}\:\d{2}\:\d{2} \-\d{4} \([A-Z]{3}\))")
 subject_pattern = re.compile("Subject: (?P<data>.*)")
@@ -16,21 +25,34 @@ bcc_pattern = re.compile("bcc: (?P<data>.*)")
 msg_start_pattern = re.compile("\n\n", re.MULTILINE)
 msg_end_pattern = re.compile("\n+.*\n\d+/\d+/\d+ \d+:\d+ [AP]M", re.MULTILINE)
 
-#
-# Function: parse_email
-# Arguments: pathname - relative path of folder/file to be parsed
-#            orig     - whether this call is the original, used for writing to file
-# Returns: none
-# Effects: dumps json into file
-#
-feeds = []
-users = {}
-threads = {}
-thread_users = {}
-user_threads = {}
+# Global data structures for storing parsed email data
+feeds = []  # List of all parsed email messages
+users = {}  # Mapping of email addresses to unique user IDs
+threads = {}  # Mapping of email subjects to unique thread IDs
+thread_users = {}  # Mapping of thread IDs to sets of user IDs involved
+user_threads = {}  # Mapping of user IDs to sets of thread IDs they're involved in
 
 
 def parse_email(pathname, orig=True):
+    """
+    Recursively parse email files from a directory or single file.
+
+    Extracts email metadata (sender, recipients, subject, timestamp) and message content,
+    organizing them into threads and user mappings. Generates JSON output files on completion.
+
+    Args:
+        pathname (str): Path to email file or directory containing email files
+        orig (bool): Whether this is the original call (used to trigger file writing).
+                     Default is True. Set to False for recursive calls.
+
+    Returns:
+        None: Results are stored in global data structures and written to JSON files
+
+    Side Effects:
+        - Updates global feeds, users, threads, thread_users, and user_threads
+        - Creates JSON files: messages.json, users.json, threads.json,
+          thread-users.json, user-threads.json (when orig=True)
+    """
     if path.isdir(pathname):
         print(pathname)
         emails = []
@@ -107,23 +129,36 @@ def parse_email(pathname, orig=True):
             exit(1)
 
 
-#
-# Function: get_or_allocated_uid
-# Arguments: name - string of a user email
-# Returns: unique integer id
-#
 def get_or_allocate_uid(name):
+    """
+    Get or create a unique user ID for an email address.
+
+    Args:
+        name (str): Email address or user identifier
+
+    Returns:
+        int: Unique integer ID for the user. Returns existing ID if user already
+             exists, otherwise creates and returns a new ID.
+    """
     if name not in users:
         users[name] = len(users)
     return users[name]
 
 
-#
-# Function: get_or_allocate_tid
-# Arguments: name - string of email subject line
-# Returns: unique integer id
-#
 def get_or_allocate_tid(name):
+    """
+    Get or create a unique thread ID for an email subject line.
+
+    Normalizes subject lines by removing common prefixes (RE:, Re:, FWD:, Fwd:)
+    to group related emails into the same thread.
+
+    Args:
+        name (str): Email subject line
+
+    Returns:
+        int: Unique integer ID for the thread. Returns existing ID if thread
+             already exists, otherwise creates and returns a new ID.
+    """
     parsed_name = re.sub("(RE|Re|FWD|Fwd): ", "", name)
     if parsed_name not in threads:
         threads[parsed_name] = len(threads)

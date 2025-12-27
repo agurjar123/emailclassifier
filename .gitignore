@@ -127,3 +127,32 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# ===== Project-Specific Ignores =====
+
+# Configuration Files
+config.py
+.env
+
+# Google API Credentials and Tokens
+client.json
+credentials.json
+token.json
+token files/
+*.pickle
+
+# Generated Data Files (Large JSON outputs)
+users.json
+threads.json
+thread-users.json
+user-threads.json
+messages.json
+*.pkl
+
+# Email Dataset (Enron corpus)
+enron_mail_*/
+maildir/
+
+# Data directories
+data/
+output/
