@@ -1,0 +1,17 @@
+# Google API Dependencies
+google-auth-oauthlib>=0.4.6
+google-auth-httplib2>=0.1.0
+google-api-python-client>=2.0.0
+
+# Data Processing
+pandas>=1.3.0
+numpy>=1.21.0
+
+# Natural Language Processing
+nltk>=3.6.0
+
+# Email Parsing
+email-validator>=1.1.3
+
+# General Dependencies
+python-dateutil>=2.8.2
